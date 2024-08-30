@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "68605740593",
+    "firebase_url": "https://consumerplus-3652d-default-rtdb.firebaseio.com",
+    "project_id": "consumerplus-3652d",
+    "storage_bucket": "consumerplus-3652d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:68605740593:android:84667e86686d2640bf7710",
+        "android_client_info": {
+          "package_name": "com.example.consumer_plus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYdM1Iw8SeUNOq-pNljdG5zNC3jUp8jFU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:68605740593:android:65c5ff7994473365bf7710",
+        "android_client_info": {
+          "package_name": "com.osei.consumerplus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYdM1Iw8SeUNOq-pNljdG5zNC3jUp8jFU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
