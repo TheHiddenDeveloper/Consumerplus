@@ -1,5 +1,6 @@
 # **Project Title: Electricity Consumption Estimator (Consumer+)**
-https://github.com/TheHiddenDeveloper/Consumerplus/blob/master/assets/images/logo_no_bg.png
+![logo_no_bg](https://github.com/user-attachments/assets/78b92e75-7095-440b-ac82-49d254f28eee)
+
 
 ## **Project Overview**
 
