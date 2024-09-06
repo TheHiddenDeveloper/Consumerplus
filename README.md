@@ -1,8 +1,9 @@
-# **Project Title: Electricity Consumption Estimator (ConsumerPlus)**
+# **Project Title: Electricity Consumption Estimator (Consumer+)**
+https://github.com/TheHiddenDeveloper/Consumerplus/blob/master/assets/images/logo_no_bg.png
 
 ## **Project Overview**
 
-**ConsumerPlus** is an app designed to help residents monitor and estimate their electricity consumption. It offers features such as real-time usage tracking, monthly cost estimation, and easy management of home appliances. The app integrates Firebase services for backend support, shared preferences for onboarding and user management, and employs state-of-the-art UI design patterns and navigation flows using Flutter.
+**Consumer+** is an app designed to help residents monitor and estimate their electricity consumption. It offers features such as real-time usage tracking, monthly cost estimation, and easy management of home appliances. The app integrates Firebase services for backend support, shared preferences for onboarding and user management, and employs state-of-the-art UI design patterns and navigation flows using Flutter.
 
 ## **Table of Contents**
 
