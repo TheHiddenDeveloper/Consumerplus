@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/appliance.dart';
 import '../services/db_service.dart';
 import '../services/theme_service.dart';
+import '../services/navigation_service.dart';
 
 class ServiceProvider extends StatelessWidget {
   final Widget child;
@@ -12,33 +13,48 @@ class ServiceProvider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeService()),
-        StreamProvider<User?>(
-          create: (_) => FirebaseAuth.instance.authStateChanges(),
-          initialData: null,
-        ),
-        // Provide DBService based on User
-        Provider<DBService>(
-          create: (context) {
-            final user = Provider.of<User?>(context, listen: false);
-            if (user != null) {
-              return DBService(user.uid);
-            } else {
-              throw Exception('User not authenticated');
-            }
-          },
-        ),
-        StreamProvider<List<Appliance>>(
-          create: (context) {
-            final dbService = Provider.of<DBService>(context, listen: false);
-            return dbService.appliances;
-          },
-          initialData: const [],
-        ),
-      ],
-      child: child,
+    return StreamProvider<User?>(
+      create: (_) => FirebaseAuth.instance.authStateChanges(),
+      initialData: null,
+      child: Consumer<User?>(
+        builder: (context, user, child) {
+          // User is authenticated
+          if (user != null) {
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(create: (_) => ThemeService()),
+                Provider<DBService>(
+                  create: (_) => DBService(user.uid),
+                ),
+                StreamProvider<List<Appliance>>(
+                  create: (context) {
+                    final dbService = Provider.of<DBService>(context, listen: false);
+                    return dbService.appliances;
+                  },
+                  initialData: const [],
+                ),
+                Provider<NavigationService>(
+                  create: (_) => NavigationService(),
+                ),
+              ],
+              child: child!,
+            );
+          }
+          // User is not authenticated
+          else {
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(create: (_) => ThemeService()),
+                Provider<NavigationService>(
+                  create: (_) => NavigationService(),
+                ),
+              ],
+              child: child!,
+            );
+          }
+        },
+        child: child,
+      ),
     );
   }
 }

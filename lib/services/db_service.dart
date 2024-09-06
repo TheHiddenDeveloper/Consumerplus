@@ -10,6 +10,14 @@ class DBService {
   DBService(this.uid);
 
 
+  // Reference to the user's document
+  DocumentReference get userDocRef {
+    if (uid.isEmpty) {
+      throw Exception('User not authenticated');
+    }
+    return _db.collection('users').doc(uid);
+  }
+
   // Get the current user's email key
   String _getEmailKey() {
     final User? user = _auth.currentUser;

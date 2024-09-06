@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../services/user_preferences.dart';
-import 'auth/login_screen.dart';
-import '../utils/fade_route.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:consumerplus/services/navigation_service.dart';
+import 'package:provider/provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  _OnboardingScreenState createState() => _OnboardingScreenState();
+  OnboardingScreenState createState() => OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -31,6 +31,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'description': 'Add and manage your home appliances effortlessly.'
     },
   ];
+
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isFirstTime', false);
+
+    // Navigate to login screen
+    final navigationService = Provider.of<NavigationService>(context, listen: false);
+    navigationService.replaceWith('/login');
+  }
 
   void _onPageChanged(int index) {
     setState(() {
@@ -95,18 +104,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
                       _onboardingData.length,
-                      (index) => buildDot(index, context),
+                          (index) => buildDot(index, context),
                     ),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
                       if (_currentPage == _onboardingData.length - 1) {
-                        UserPreferences.setOnboardingComplete(true);
-                        Navigator.pushReplacement(
-                          context,
-                          FadeRoute(page: const LoginScreen()),
-                        );
+                        _completeOnboarding();
                       } else {
                         _pageController.nextPage(
                           duration: const Duration(milliseconds: 300),

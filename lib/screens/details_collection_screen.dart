@@ -1,47 +1,23 @@
-import 'package:consumerplus/screens/permission_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:permission_handler/permission_handler.dart';
-
 import 'dashboard/dashboard_screen.dart';
 
 class DetailsCollectionScreen extends StatefulWidget {
   const DetailsCollectionScreen({super.key});
 
   @override
-  _DetailsCollectionScreenState createState() =>
-      _DetailsCollectionScreenState();
+  DetailsCollectionScreenState createState() => DetailsCollectionScreenState();
 }
 
-void _checkPermissionsAndNavigate(BuildContext context) async {
-  // Check if all necessary permissions are granted
-  bool cameraGranted = await Permission.camera.isGranted;
-  bool storageGranted = await Permission.storage.isGranted;
-  bool locationGranted = await Permission.location.isGranted;
-
-  if (cameraGranted && storageGranted && locationGranted) {
-    // All permissions are granted, navigate to the Dashboard
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const DashboardScreen()),
-    );
-  } else {
-    // Permissions are not granted, navigate to the PermissionsScreen
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const PermissionRequestScreen()),
-    );
-  }
-}
-
-class _DetailsCollectionScreenState extends State<DetailsCollectionScreen> {
+class DetailsCollectionScreenState extends State<DetailsCollectionScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _postalCodeController = TextEditingController();
   String _consumerType = 'Residential'; // Default value
+  bool _isLoading = false;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -49,33 +25,38 @@ class _DetailsCollectionScreenState extends State<DetailsCollectionScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
   }
 
-  void _loadUserProfile() async {
-    final User? user = _auth.currentUser;
-    if (user != null) {
-      final emailKey = user.email!.replaceAll('.', ',');
-      final profileDoc =
-          await _firestore.collection(emailKey).doc('profile').get();
-
-      if (profileDoc.exists) {
-        final data = profileDoc.data()!;
-        setState(() {
-          _firstNameController.text = data['firstName'] ?? '';
-          _lastNameController.text = data['lastName'] ?? '';
-          _addressController.text = data['address'] ?? '';
-          _cityController.text = data['city'] ?? '';
-          _postalCodeController.text = data['postalCode'] ?? '';
-          _consumerType = data['consumerType'] ?? 'Residential';
-        });
-      }
-    }
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _postalCodeController.dispose();
+    super.dispose();
   }
 
   void _saveUserProfile() async {
     final User? user = _auth.currentUser;
-    if (user != null) {
+    if (user == null) return;
+
+    if (_firstNameController.text.isEmpty ||
+        _lastNameController.text.isEmpty ||
+        _addressController.text.isEmpty ||
+        _cityController.text.isEmpty ||
+        _postalCodeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
       final emailKey = user.email!.replaceAll('.', ',');
       await _firestore.collection(emailKey).doc('profile').set({
         'firstName': _firstNameController.text,
@@ -89,8 +70,19 @@ class _DetailsCollectionScreenState extends State<DetailsCollectionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully')),
       );
-      _checkPermissionsAndNavigate(context);
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -107,8 +99,7 @@ class _DetailsCollectionScreenState extends State<DetailsCollectionScreen> {
           children: [
             Text(
               'Please enter your details below:',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -181,7 +172,9 @@ class _DetailsCollectionScreenState extends State<DetailsCollectionScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton(
               onPressed: _saveUserProfile,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),

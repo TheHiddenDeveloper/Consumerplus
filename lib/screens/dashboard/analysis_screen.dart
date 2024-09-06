@@ -243,7 +243,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     }).toList();
   }
 
-  int _touchedIndex = -1;
+  final int _touchedIndex = -1;
 
   List<Widget> _createLegend(List<Appliance> appliances) {
     final colors = [

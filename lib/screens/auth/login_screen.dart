@@ -1,26 +1,35 @@
-import 'package:consumerplus/screens/auth/reset_password_screen.dart';
-import 'package:consumerplus/screens/auth/signup_screen.dart';
-import 'package:consumerplus/screens/details_collection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../dashboard/dashboard_screen.dart';
+import 'package:provider/provider.dart';
+import '../../services/navigation_service.dart';
+import 'signup_screen.dart';
+import 'reset_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   void _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
@@ -28,28 +37,23 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final user = userCredential.user;
-      if (user != null) {
-        final profileDoc = _firestore.collection(user.uid).doc('Profile');
-        final profileSnapshot = await profileDoc.get();
-
-        if (!profileSnapshot.exists) {
-          // Navigate to the DetailsCollectionScreen if "Profile" does not exist
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const DetailsCollectionScreen()),
-          );
-        } else {
-          // Handle the case where the profile exists (e.g., navigate to the dashboard)
-          // For example, you can navigate to a DashboardScreen here
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const DashboardScreen()));
-        }
+      if (user != null && mounted) {
+        // Navigate to the PermissionRequestScreen after login
+        final navigationService = Provider.of<NavigationService>(context, listen: false);
+        navigationService.replaceWith('/permission');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -67,8 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 50),
             Text(
               'Welcome!',
-              style: theme.textTheme.headlineLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
@@ -100,7 +103,9 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: true,
             ),
             const SizedBox(height: 30),
-            ElevatedButton(
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton(
               onPressed: _login,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -127,8 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const ResetPasswordScreen()),
+                  MaterialPageRoute(builder: (context) => const ResetPasswordScreen()),
                 );
               },
               child: Text(
